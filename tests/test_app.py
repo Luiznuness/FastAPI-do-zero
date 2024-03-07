@@ -58,6 +58,7 @@ def test_delete_user(client):
     assert response.json() == {'message': 'User deleted'}
 
 
+
 """def teste_get(client):
 
 retorno = client.get('/')
