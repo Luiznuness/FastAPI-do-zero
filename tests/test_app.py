@@ -1,61 +1,96 @@
-def teste_post(client):
+from fast_zero.schemas import UserPublic
 
+
+def test_create_user(client):
     response = client.post(
-        '/users/',
+        '/users',
         json={
-            'username': 'Luiz',
-            'email': 'lg.nunes.souza2006@gmail.com',
-            'password': 'Bruna1608!',
+            'username': 'alice',
+            'email': 'alice@example.com',
+            'password': 'secret',
         },
     )
-
     assert response.status_code == 201
     assert response.json() == {
-        'username': 'Luiz',
-        'email': 'lg.nunes.souza2006@gmail.com',
+        'username': 'alice',
+        'email': 'alice@example.com',
         'id': 1,
     }
 
 
-def teste_db_get(client):
-
+def test_read_get(client):
     response = client.get('/users-get/')
 
     assert response.status_code == 200
-    assert response.json() == {
-        'users': [
-            {
-                'username': 'Luiz',
-                'email': 'lg.nunes.souza2006@gmail.com',
-                'id': 1,
-            }
-        ]
-    }
+    assert response.json() == {'users': []}
 
 
-def test_update_user(client):
+def test_read_with_users(client, user):
+    user_schema = UserPublic.model_validate(user).model_dump()
+    response = client.get('/users-get/')
 
+    assert response.json() == {'users': [user_schema]}
+
+
+def test_update_user(client, user):
     response = client.put(
         '/users/1',
         json={
             'username': 'Nunes',
-            'email': 'teste@gmail.com',
+            'email': 'Nunes@gmail.com',
             'password': 'mynewpassword',
         },
     )
     assert response.status_code == 200
     assert response.json() == {
         'username': 'Nunes',
-        'email': 'teste@gmail.com',
+        'email': 'Nunes@gmail.com',
         'id': 1,
     }
 
 
-def test_delete_user(client):
+def test_delete_user(client, user):
     response = client.delete('/users/delete/1')
-
     assert response.status_code == 200
     assert response.json() == {'message': 'User deleted'}
+
+
+def test_error_put(client, user):
+    response = client.put(
+        '/users/2',
+        json={
+            'username': 'Luiz',
+            'email': 'luiz@test.com',
+            'password': 'TesteLuiz',
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'User not found'}
+
+
+def test_error_delete(client, user):
+    response = client.delete('/users/delete/2')
+
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'User not found'}
+
+
+def test_erro_post(client, user):
+    response = client.post(
+        '/users/',
+        json={
+            'username': 'Luiz',
+            'email': 'luiz@test.com',
+            'password': 'TesteLuiz',
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {'detail': 'Username already registered'}
+
+
+"""
 
 
 def test_error_update(client):
@@ -115,6 +150,7 @@ def test_error_getID(client):
     assert response.status_code == 404
     assert response.json() == {'detail': 'User Not found'}
 
+"""
 
 """def teste_get(client):
 
